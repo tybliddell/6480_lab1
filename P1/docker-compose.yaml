@@ -1,1 +1,35 @@
-#!/bin/bash
+version: '3'
+
+services:
+  host-a:
+    tty: true
+    build: .
+    networks:
+      host-a-r1:
+        ipv4_address: 10.0.14.3
+  r1:
+    tty: true
+    build: .
+    privileged: true
+    networks:
+      host-a-r1:
+        ipv4_address: 10.0.14.4
+      r1-host-b:
+        ipv4_address: 10.0.15.4
+  host-b:
+    tty: true
+    build: .
+    networks:
+      r1-host-b:
+       ipv4_address: 10.0.15.3
+
+
+networks:
+  host-a-r1:
+    ipam:
+      config:
+        - subnet: 10.0.14.0/24
+  r1-host-b:
+    ipam:
+      config:
+        - subnet: 10.0.15.0/24
