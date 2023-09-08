@@ -2,15 +2,18 @@ version: '3'
 
 services:
   host-a:
-    tty: true
     privileged: true
-    #command: sh -c "route add -net 10.0.15.0/24 gw 10.0.14.4 && bash"
+    environment:
+      - TARGET=10.0.15.0/24
+      - GW=10.0.10.4
     build: .
     networks:
       host-a-r1:
         ipv4_address: 10.0.10.3
   r1:
-    tty: true
+    privileged: true
+    environment:
+      - IPS=10.0.10.4:10.0.11.3:10.0.12.3
     build: .
     networks:
       host-a-r1:
@@ -20,7 +23,9 @@ services:
       r1-r4:
         ipv4_address: 10.0.12.3
   r2:
-    tty: true
+    privileged: true
+    environment:
+      - IPS=10.0.11.4:10.0.13.3
     build: .
     networks: 
       r1-r2:
@@ -28,7 +33,9 @@ services:
       r2-r3:
         ipv4_address: 10.0.13.3
   r3:
-    tty: true
+    privileged: true
+    environment:
+      - IPS=10.0.13.4:10.0.14.4:10.0.15.3
     build: .
     networks:
       r2-r3:
@@ -37,18 +44,21 @@ services:
         ipv4_address: 10.0.14.4
       r3-host-b:
         ipv4_address: 10.0.15.3
-  r4:
-    tty: true
-    build: .
-    networks:
-      r1-r4:
-        ipv4_address: 10.0.12.4
-      r4-r3:
-        ipv4_address: 10.0.14.3
+  # r4:
+  #   privileged: true
+  #   environment:
+  #     - IPS=10.0.12.4:10.0.14.3
+  #   build: .
+  #   networks:
+  #     r1-r4:
+  #       ipv4_address: 10.0.12.4
+  #     r4-r3:
+  #       ipv4_address: 10.0.14.3
   host-b:
-    tty: true
     privileged: true
-    #command: sh -c "route add -net 10.0.14.0/24 gw 10.0.15.4 && bash"
+    environment:
+      - TARGET=10.0.10.0/24
+      - GW=10.0.15.3
     build: .
     networks:
       r3-host-b:
