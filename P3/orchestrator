@@ -1,0 +1,85 @@
+#!/bin/bash
+
+HOST_A="p3-host-a-1"
+HOST_B="p3-host-b-1"
+R1="p3-r1-1"
+R2="p3-r2-1"
+R3="p3-r3-1"
+R4="p3-r4-1"
+
+display_help() {
+    echo "Usage: orchestaor [-h | --help] [-c <command>]
+
+commands:
+    init
+    start-ospf
+    add-routes
+    add-r4
+    move-traffic
+    remove-r2
+    host-ping"
+}
+
+run_command() {
+    case $COMMAND in
+        init)
+            echo "running init"
+            if [ -n "$(sudo docker ps | grep $HOST_A)" ]; then
+                echo "Containers are currently up, shutting down first"
+                sudo docker compose down
+            fi
+            sudo docker compose up -d --build
+            # sleep 1
+            for container in $R1 $R2 $R3; do # stop services
+                sudo docker exec $container service zebra stop
+                sudo docker exec $container service ospfd stop
+                echo $container
+            done
+            ;;
+        start-ospf)
+            echo "running start-ospf"
+            echo $(sudo docker exec -it $R1 sh -c 'systemctl is-active --quiet zebra; exit $?')
+            ;;
+        add-routes)
+            echo "running add-routes"
+            sudo docker exec $HOST_A route add -net 10.0.15.0/24 gw 10.0.10.4
+            sudo docker exec $HOST_B route add -net 10.0.10.0/24 gw 10.0.15.3
+            ;;
+        add-r4)
+            echo "running add-r4"
+            ;;
+        move-traffic)
+            echo "running move-traffic"
+            ;;
+        remove-r2)
+            echo "running remove-r2"
+            ;;
+        host-ping)
+            echo "running host-ping"
+            echo "pinging from host-a to host-b"
+            sudo docker exec $HOST_A timeout 5 ping 10.0.15.4
+            echo "pinging from host-b to host-a"
+            sudo docker exec $HOST_B timeout 5 ping 10.0.10.3
+            ;;
+        *)
+            echo "unknown command: $COMMAND"
+            exit 1
+            ;;
+    esac
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h | --help) display_help; exit 0 ;;
+        -c) COMMAND="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+if [ -z "$COMMAND" ]; then
+    display_help   
+    exit 0
+fi
+
+run_command
