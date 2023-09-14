@@ -44,16 +44,17 @@ services:
         ipv4_address: 10.0.14.4
       r3-host-b:
         ipv4_address: 10.0.15.3
-  # r4:
-  #   privileged: true
-  #   environment:
-  #     - IPS=10.0.12.4:10.0.14.3
-  #   build: .
-  #   networks:
-  #     r1-r4:
-  #       ipv4_address: 10.0.12.4
-  #     r4-r3:
-  #       ipv4_address: 10.0.14.3
+  r4:
+    privileged: true
+    profiles: ["r4"]
+    environment:
+      - IPS=10.0.12.4:10.0.14.3
+    build: .
+    networks:
+      r1-r4:
+        ipv4_address: 10.0.12.4
+      r4-r3:
+        ipv4_address: 10.0.14.3
   host-b:
     privileged: true
     # environment:
@@ -63,7 +64,6 @@ services:
     networks:
       r3-host-b:
        ipv4_address: 10.0.15.4
-
 
 networks:
   host-a-r1:
